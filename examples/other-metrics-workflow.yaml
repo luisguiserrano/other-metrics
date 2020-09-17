@@ -107,11 +107,11 @@ steps:
     - labels: ((preprocess-data.labels))
       type: np_labels
   outputs:
-  - name: accuracy
-    type: fl_accuracy
+  - name: f1_score
+    type: sk_f1score
 types:
  - message
  - np_features
  - np_labels
  - np_predictions
- - fl_accuracy
+ - sk_f1score
