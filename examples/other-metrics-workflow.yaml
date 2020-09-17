@@ -1,0 +1,117 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: tutorial-3-modular
+
+# List resources needed by workflow.
+imports:
+- name: sklearn-resource
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-scikit-learn.git"
+    branch: "workflow-v1"
+- name: other-metrics-resource
+  type: git
+  parameters:
+    repository: "git@github.com:luisguiserrano/other-metrics.git"
+    branch: "master"
+
+steps:
+
+# This step runs the task that generates the dataset 
+- name: generate-data
+  config:
+    runtime:
+      type: python3
+      imports: [sklearn-resource]
+      parameters:
+        file: sklearn-resource/tasks/tutorial_3_exercise_task.py
+        function: generate_data_task
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "15Gi"
+  inputs:
+    - dataset_name: "simple_dataset"
+      type: string
+  outputs:
+  - name: data
+    type: message
+
+# This step runs the task that preprocesses the data
+- name: preprocess-data
+  passed: [generate-data]
+  config:
+    runtime:
+      type: python3
+      imports: [sklearn-resource]
+      parameters:
+        file: sklearn-resource/tasks/tutorial_3_exercise_task.py
+        function: preprocess_data_task
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "15Gi"
+  inputs:
+    - data: ((generate-data.data))
+      type: message
+  outputs:
+  - name: features
+    type: np_features
+  - name: labels
+    type: np_labels
+
+# This step runs the task that trains the model and makes the predictions
+- name: train-predict
+  passed: [preprocess-data]
+  config:
+    runtime:
+      type: python3
+      imports: [sklearn-resource]
+      parameters:
+        file: sklearn-resource/tasks/tutorial_3_exercise_task.py
+        function: train_predict_task
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "15Gi"
+  inputs:
+    - model_name: "perceptron"
+      type: string
+    - features: ((preprocess-data.features))
+      type: np_features
+    - labels: ((preprocess-data.labels))
+      type: np_labels
+  outputs:
+  - name: predictions
+    type: np_predictions
+
+# This step runs the task that calculates the accuracy of the model
+- name: calculate-f1-score
+  passed: [train-predict]
+  config:
+    runtime:
+      type: python3
+      imports: [other-metrics-resource]
+      parameters:
+        file: other-metrics-resource/tasks/calculate_f1_score_task.py
+        function: calculate_accuracy_task
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "15Gi"
+  inputs:
+    - predictions: ((train-predict.predictions))
+      type: np_predictions
+    - labels: ((preprocess-data.labels))
+      type: np_labels
+  outputs:
+  - name: accuracy
+    type: fl_accuracy
+types:
+ - message
+ - np_features
+ - np_labels
+ - np_predictions
+ - fl_accuracy
