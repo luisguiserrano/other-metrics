@@ -1,7 +1,7 @@
 from metrics.functions import calculate_f1_score
 from metrics.utils import read_json, save_json
 
-def calculate_accuracy_task(labels, predictions):
+def calculate_f1_score_task(labels, predictions):
     lab = read_json(labels)['labels']
     pred = read_json(predictions)['predictions']
 
