@@ -87,7 +87,7 @@ steps:
   - name: predictions
     type: np_predictions
 
-# This step runs the task that calculates the accuracy of the model
+# This step runs the task that calculates the f1-score of the model
 - name: calculate-f1-score
   passed: [train-predict]
   config:
@@ -95,8 +95,8 @@ steps:
       type: python3
       imports: [other-metrics-resource]
       parameters:
-        file: other-metrics-resource/tasks/calculate_f1_score_task.py
-        function: calculate_accuracy_task
+        file: other-metrics-resource/tasks/f1_score_task.py
+        function: calculate_f1_score_task
     resources:
       cpu: "1000m"
       memory: "1Gi"
