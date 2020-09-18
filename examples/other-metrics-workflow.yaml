@@ -108,10 +108,10 @@ steps:
       type: np_labels
   outputs:
   - name: f1_score
-    type: sk_f1score
+    type: output_f1score
 types:
  - message
  - np_features
  - np_labels
  - np_predictions
- - sk_f1score
+ - output_f1score
